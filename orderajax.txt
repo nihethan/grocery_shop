@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order</title>
+    <link rel="stylesheet" href="style.css">
+    <script></script>
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">OrderEase</div>
+        <nav>
+            <ul class="nav-store">
+                <li><a href="home.html">HOME</a></li>
+                <li><a href="createcustomer.html">CREATE CUSTOMER</a></li>
+                <li><a href="customer.html">CUSTOMER</a></li>
+                <li><a href="product.html">PRODUCT</a></li>
+            </ul>
+        </nav>
+</header>
+<div class="fetch">
+    <h3 class="sub">Customer Details :</h3><br>
+    
+     <h4 id="customer-id">Customer Id :</h4><br>
+     <h4 id="customer-name">Customer Name :</h4><br>
+     <h4 id="customer-mobile-number">Mobile Number :</h4><br>
+     <h4 id="customer-address">Address :</h4>
+</div>
+<div class="db-table">
+   <center> <table class="order-table">
+        <thead>
+        <tr>
+            <th >S.No</th>
+            <th >Order Id</th>
+            <th >Order Date</th>
+            <th >Total Amount</th>
+            <th>Order Status</th>
+            <th>Action</th>
+            
+        </tr></thead>
+        <tbody id="tablebody"></tbody>
+      
+    </table></center></div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+       $(document).ready(function () {
+          const customerMail=localStorage.getItem('customerMail');
+          const customerEmailHome=localStorage.getItem('customermail');
+          const sno=localStorage.getItem('sno');
+          const totalAmount=localStorage.getItem('totalAmount');
+
+    //      console.log(totalAmount);
+     console.log(customerEmailHome);
+
+          if(customerMail){
+            $.ajax({
+               url:"http://localhost:8080/api/customermail",
+               type:"GET",
+               data:{customerEmail:customerMail},
+               success: function (customer) {
+                
+              
+                $('#customer-id').html(`<p>Customer Id: ${sno}<p>`);        
+                 $('#customer-name').html(`<p>Customer Name: ${customer.customerName}<p>`);
+                    $('#customer-mobile-number').html(`<p>Mobile Number : ${customer.customerMobileNumber}<p>`);
+                        $('#customer-address').html(`<p>Customer Address: ${customer.customerAddress}<p>`);
+              
+                ordertable(customerMail,sno)
+               },
+               error:function(){
+                alert("Failed to load customers");
+               }
+
+            });
+          }
+            else if(customerEmailHome){
+            $.ajax({
+               url:"http://localhost:8080/api/customermail",
+               type:"GET",
+               data:{customerEmail:customerEmailHome},
+               success: function (customer) {
+              
+                $('#customer-id').html(`<p>Customer Id: ${sno}<p>`);        
+                 $('#customer-name').html(`<p>Customer Name: ${customer.customerName}<p>`);
+                    $('#customer-mobile-number').html(`<p>Mobile Number : ${customer.customerMobileNumber}<p>`);
+                        $('#customer-address').html(`<p>Customer Address: ${customer.customerAddress}<p>`);
+              
+               ordertable(customerEmailHome,sno)
+               },
+               error:function(){
+                alert("Failed to load customers");
+               }
+
+            });
+          }
+
+        
+         
+
+           
+var ono=1;
+           function ordertable(customerMail,sno){
+             $.ajax({
+                url:"http://localhost:8080/api/orderemail",
+                type:"GET",
+                data:{customerMail:customerMail},
+                success: function (order) {
+                  $("#tablebody").empty();
+                  order.forEach(element => {
+                 
+                        const row = `
+                        <tr>
+                            <td>${ono++}</td>
+                            <td>${sno}</td>
+                            <td>${element.dateOfPurchase}</td>
+                            <td>${element.totalAmount}</td>
+                            <td>${element.orderStatus}</td>
+                       
+                            <td>
+                                <button  style="backround-color" class="del-btn" data-id="${element.orderId}">Delete</button><br><br>
+                                <button  style="backround-color" class="order-view-btn" data-viewid="${element.orderId}">View</button>
+                               
+                            </td>
+                        </tr>`;
+                    $("#tablebody").append(row);
+                  
+                 });
+                 
+                 $("#tablebody").on("click",".order-view-btn",function() {
+                 const orderId=$(this).data("viewid");
+                  localStorage.setItem('orderId',orderId);
+                  console.log(orderId);
+                  localStorage.setItem('customerMail',customerMail);
+                  console.log(customerMail);
+                  localStorage.setItem('sno',sno);
+                  console.log(sno);
+                  localStorage.setItem('ono',ono);
+                  console.log(ono);
+                  //window.location.href="orderview.html";
+            });
+                },
+                error:function(){
+                alert("Failed to place order");
+               }
+             });
+            }
+            
+       });
+    </script>
+
+</body>
+</html>
