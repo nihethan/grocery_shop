@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Customer</title>
+
+</head>
+<body>
+    <header class="navbar">
+              
+             <div class="logo">OrderEase</div>
+             <nav>
+                <ul class="nav-store">
+                    <li><a href="home.html">HOME</a></li>
+                    <li><a href="createcustomer.html">CREATE CUSTOMER</a></li>
+                    <li><a href="customer.html">CUSTOMER</a></li>
+                    <li><a href="product.html">PRODUCT</a></li>
+                </ul>
+             </nav>
+    </header>
+  <div id="update-customer-part"><h2>Update Part</h2>
+    <form id="update-customer-form">
+       <input id="name" type="text" placeholder="Enter the Your Name" required>
+       <input id="number" type="text" placeholder="Enter the Your Mobile Number" required>
+       <input id="mail-id" type="text" placeholder="Enter the Your Email Id(In lowercase)" required>
+       <input id="address" type="text" placeholder="Enter the Your Address" required>
+       <button type="submit">UPDATE</button>
+    </form>
+</div>
+<h1 class="customer" style="color: rgba(36, 34, 34, 0.671); margin-top: 5%;">Customer List</h1>
+<div class="db-table" style="margin-top: 5px;">
+
+    <center><table class="product-table">
+        <thead>
+        <tr>
+            <th >S.No</th>
+            <th >Customer Name</th>
+            <th >Mobile Number</th>
+            <th>Email Id</th>
+            <th>Customer Address</th>
+            <th>Action</th>
+        </tr></thead>
+        <tbody id="tablebody"></tbody>
+    </table>
+</center>
+</div>
+    
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var sno=0; 
+  
+$(document).ready(function () {
+    $("#update-customer-part").hide();
+    loadCustomers();
+         checkcustomer=localStorage.getItem("checkcustomerupdated");
+    function loadCustomers() {
+         //  checkcustomer=0;
+        $.ajax({
+            url: "http://localhost:8080/api/customer",
+            type: "GET",
+            success: function (data) {
+                $("#tablebody").empty(); 
+             sno=0;
+                data.forEach(customer => {
+                    const row = `
+                        <tr>
+                            <td>${sno+=1}</td>
+                            <td>${customer.customerName}</td>
+                            <td>${customer.customerMobileNumber}</td>
+                            <td>${customer.customerEmail}</td>
+                            <td>${customer.customerAddress}</td>
+                            <td>
+                                <button class="del-btn" data-id="${customer.customerId}"  style="padding:5px; margin-top:5px">Delete</button><br><br>
+                                <button class="view-button-id" data-id="${customer.customerEmail}"   data-sno="${sno}" style="padding:5px;">View Order</button>
+                                <button class="edit-btn" data-editid="${customer.customerId}" style="padding:5px;margin-top:15px">Edit</button>
+                            </td>
+                        </tr>`;
+                    $("#tablebody").append(row);
+                });
+            },
+            error: function () {
+                alert("Failed to load customers");
+            }
+        });
+    }
+
+    $("#tablebody").on("click", ".del-btn", function () {
+        const customerId = $(this).data("id");
+         
+        if (confirm("Are you sure you want to delete this customer?")) {
+            $.ajax({
+                url: "http://localhost:8080/api/customer",
+                type: "DELETE",
+                data: { customerId: customerId },
+                success: function (response) {
+                    
+                    loadCustomers();
+                    alert(response.message);
+                },
+                error: function () {
+                    alert("Failed to delete customer");
+                }
+            });
+        }
+    });
+      $("#tablebody").on("click", ".edit-btn", function () {
+        $("#update-customer-part").show();
+ 
+        const customerExistId= $(this).data("editid");
+         if (confirm("Are you sure you want to Edit this customer?")) {
+                 localStorage.setItem("customerexistId",customerExistId);
+                  
+               //  window.location.href="createcustomer.html";
+         }
+      });
+
+    
+    $("#tablebody").on("click",".view-button-id",function() {
+        const customerMail = $(this).data("id");
+         localStorage.setItem('customerMail',customerMail);
+     // console.log(customerMail);
+         const sno = $(this).data("sno");
+         localStorage.setItem('sno',sno);
+        // console.log( localStorage.setItem('customerId',customerId));
+    window.location.href='order.html';
+    }
+    );
+});
+
+</script>
+ 
+</body>
+</html>
