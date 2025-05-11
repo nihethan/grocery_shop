@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Management</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        #update-customer-part {
+            display: none;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        table {
+            width: 80%;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Customer List</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tablebody">
+            <!-- Customer rows will be added here -->
+        </tbody>
+    </table>
+
+    <div id="update-customer-part">
+        <h3>Update Customer</h3>
+        <form id="update-customer-form">
+            <label>Name:</label>
+            <input type="text" id="name" required><br><br>
+            <label>Mobile:</label>
+            <input type="text" id="number" required><br><br>
+            <label>Email:</label>
+            <input type="email" id="mail-id" required><br><br>
+            <label>Address:</label>
+            <input type="text" id="address" required><br><br>
+            <button type="submit">Update Customer</button>
+            <button type="button" id="cancel-btn">Cancel</button>
+        </form>
+    </div>
+
+    <script>
+        function loadCustomers() {
+            $.ajax({
+                url: "http://localhost:8080/api/customer",
+                type: "GET",
+                success: function (customers) {
+                    $("#tablebody").empty();
+                    customers.forEach(function (customer) {
+                        $("#tablebody").append(`
+                            <tr>
+                                <td>${customer.customerId}</td>
+                                <td>${customer.customerName}</td>
+                                <td>${customer.customerMobileNumber}</td>
+                                <td>${customer.customerEmail}</td>
+                                <td>${customer.customerAddress}</td>
+                                <td>
+                                    <button class="edit-btn" data-editid="${customer.customerId}">Edit</button>
+                                </td>
+                            </tr>
+                        `);
+                    });
+                },
+                error: function () {
+                    alert("Failed to fetch customer list.");
+                }
+            });
+        }
+
+        // Load customers on page load
+        $(document).ready(function () {
+            loadCustomers();
+        });
+
+        // Handle Edit button click
+        $("#tablebody").on("click", ".edit-btn", function () {
+            const customerExistId = $(this).data("editid");
+            if (confirm("Are you sure you want to edit this customer?")) {
+                localStorage.setItem("customerexistId", customerExistId);
+                $.ajax({
+                    url: "http://localhost:8080/api/customerid",
+                    type: "GET",
+                    data: { customerId: customerExistId },
+                    success: function (customer) {
+                        $("#name").val(customer.customerName);
+                        $("#number").val(customer.customerMobileNumber);
+                        $("#mail-id").val(customer.customerEmail);
+                        $("#address").val(customer.customerAddress);
+                        $("#update-customer-part").show();
+                    },
+                    error: function () {
+                        alert("Failed to load customer data.");
+                    }
+                });
+            }
+        });
+
+        // Handle form submission
+        $("#update-customer-form").on("submit", function (e) {
+            e.preventDefault();
+            const customerId = localStorage.getItem("customerexistId");
+            const updatedCustomer = {
+                customerId: customerId,
+                customerName: $("#name").val(),
+                customerMobileNumber: $("#number").val(),
+                customerEmail: $("#mail-id").val(),
+                customerAddress: $("#address").val()
+            };
+
+            $.ajax({
+                url: "http://localhost:8080/api/customer",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(updatedCustomer),
+                success: function (response) {
+                    alert(response.message);
+                    resetForm();
+                    loadCustomers();
+                },
+                error: function () {
+                    alert("Failed to update customer.");
+                }
+            });
+        });
+
+        // Handle Cancel button
+        $("#cancel-btn").on("click", function () {
+            resetForm();
+        });
+
+        // Reset form
+        function resetForm() {
+            $("#update-customer-form")[0].reset();
+            $("#update-customer-part").hide();
+            localStorage.removeItem("customerexistId");
+        }
+    </script>
+
+</body>
+</html>
