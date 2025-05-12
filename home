@@ -1,0 +1,280 @@
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Home</title>
+</head>
+
+<body>
+    <header class="navbar">
+               
+        <div class="logo">OrderEase</div>
+        <nav>
+            <ul class="nav-store">
+                <li><a href="home.html">HOME</a></li>
+                <li><a href="createcustomer.html">CREATE CUSTOMER</a></li>
+                <li><a href="customer.html">CUSTOMER</a></li>
+                <li><a href="product.html">PRODUCT</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="fetch">
+        <div class="home-align">
+            <h2>Add Products</h2>
+            <h2 id=table-amount style="margin-right: 90px;">Total Amount</h2>
+        </div>
+        <div class="home-align-value">
+            <form>
+                <input type="text" placeholder="Product Name" id="productnme" required>
+                <input type="number" placeholder="Quantity" id="quantity" required>
+                <button type="submit" id="add">Add</button>
+            </form>
+            <h1 id="totalamount" style="padding-right: 5%;margin-right: 90px;">0</h1>
+        </div>
+    </div>
+    <div id="home-order-placed-product"><h1>Cart Products List</h1></div>
+    <div class="db-table" style="margin-top: 10px; margin-left: 10%;">
+        <center>
+            <table class="product-table"  style="position: fixed; text-align: center;margin-left: 25%;">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>MRP</th>
+                        <th>Price</th>
+                        <th>Tax</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="tablebody"></tbody>
+
+            </table>
+            
+        </center>
+       
+    </div>
+     <div id="not-yet">Not yet placed</div>
+    <div class="customer-details-fetch" style="margin-top: -85px;display: flex;position: fixed;margin-left:2%; " >
+        <footer>
+            <h2 style="color: rgba(22, 22, 21, 0.555);margin-left:10px;">Customer Details</h2><br><br>
+            <form style="margin-left:-176px;">
+                <br><br> <input type="text" placeholder="Email Id (In lowercase)" id="cust-id" required><div id="suggestion"></div>
+                <button id="customer-id" data-id="${customer.customerId}" >Place Order</button>
+            </form>
+        </footer>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        var sno = 0;
+        var totalAmount=0;
+        var productList=[];
+        
+        
+        $(document).ready(function () {
+            var check = 0;
+            var  productname ;
+            var productquantity;
+            $("form").submit(function (e) {
+                e.preventDefault();
+                 
+    $("#not-yet").hide();
+  
+                productname = $('input[type="text"]').val().trim();
+             productquantity = $("#quantity").val();
+           // console.log(productname);
+        
+               $.ajax({
+                url:"http://localhost:8080/api/productnameexist",
+                type:"GET",
+                data:{productName:productname},
+                success:function(response){
+                    if(response===true|| response==="true")
+                 {
+                    check=1;
+                    orderViewProduct();
+                    loadProductName();
+                    
+
+                 }
+                else{
+                      alert("This Product is not in our shop");
+                      if (confirm("Are you May need to Visit our product Menu ?")) {
+                        window.location.href="product.html";
+                      }
+                     
+                }},
+                error: function () {
+                        alert("Failed to load product");
+                    }
+
+               });  });
+            function  orderViewProduct(){
+                
+            }
+            function loadProductName() {
+                $.ajax({
+                    url: "http://localhost:8080/api/productname",
+                    type: "GET",
+                    data:{productName:productname},
+                    success: function (product) {
+                        productList.push({productId:product.productId,productName:product.productName,productUnit:product.productUnit,productMRP:product.productMRP,productPrice:product.productPrice,productTax:product.productTax,quantity:productquantity})
+                        // $("#tablebody").empty();
+                            const row = `
+                        <tr>
+                            <td>${sno += 1}</td>
+                            <td>${product.productName}</td>
+                            <td>${productquantity}</td>
+                            <td>${product.productUnit}</td>
+                            <td>${product.productMRP}</td>
+                            <td>${product.productPrice}</td>
+                            <td>${product.productTax}</td>
+                               <td> <button class="del-btn" data-product-id="${product.productId}"  style="padding:5px; margin-top:5px">Delete</button>
+                              
+                            </td>
+                        </tr>`;
+                            $("#tablebody").append(row);
+                           
+                            totalAmount= totalAmount+(productquantity*product.productPrice) ;
+                            $("#totalamount").html(totalAmount);
+
+                         
+        
+                    },
+                    error: function () {
+                        alert("Failed to load product");
+                    }
+                });
+            }
+
+           
+
+             $("#tablebody").on("click", ".del-btn", function () {
+       
+
+        if (confirm("Are you sure you want to delete this product?")) {
+            const productId = $(this).data("product-id");
+            const row=$(this).closest("tr");
+            const qnt=parseInt(row.find('td:eq(2)').text());
+            const price=parseFloat(row.find("td:eq(5)").text());
+            const value=qnt*price;
+            totalAmount-=value;
+            if(totalAmount<=0){
+                $("#totalamount").text("0");
+                    $("#not-yet").show();
+
+            }
+            else{
+            $("#totalamount").text(totalAmount);}
+            row.remove();
+            updatesno();
+            productList=productList.filter(val=>val.productId!==productId);         
+        }
+    });
+
+    function  updatesno(){
+        $("#tablebody tr").each(function(index){
+            $(this).find('td:first-child').text(index+1);
+        });
+        sno=$("#tablebody tr").length;
+    }
+ 
+    $("#customer-id").on("click", function (e) {
+
+                e.preventDefault();
+               
+       const customeremail=$("#cust-id").val().trim();
+        const totalamt=totalAmount;
+      //  console.log(totalAmount);
+               
+               $.ajax({
+                url:"http://localhost:8080/api/checkbymailid",
+                type:"GET",
+                data:{customerEmail:customeremail},
+                success:function(response){
+                    if(response===true|| response==="true")
+                 {
+                    if(check===1 && totalamt>0){
+                        orderplace(totalamt,customeremail,productquantity);
+                   
+                    }
+                    else{
+
+                        alert("Please give your order products details in respected area.")
+                    }
+
+                 }
+                else{
+                      alert("Please Create your account first");
+                      window.location.href="createcustomer.html";
+                     
+                }},
+                error: function () {
+                        alert("Failed to load customers");
+                    }
+
+               });
+
+            });
+
+            
+           function orderplace(totalamt,customeremail,productquantity){
+
+          //  console.log(totalamt);
+            //console.log(customeremail);
+            //console.log(productquantity);
+               $.ajax({
+                url:"http://localhost:8080/api/order",
+                type:"POST",
+                contentType: "application/json",
+              data: JSON.stringify({
+                orderStatus:"Placed",
+                productOrder:productList.map(value=>({
+                    productId:value.productId,
+                    quantity:value.quantity
+                }))
+              ,
+              customerMail:customeremail,
+                totalAmount:totalamt
+              }),
+              dataType: 'json',
+              success: function (response) {
+                //  alert("Order working " +response.orderId)
+                 orderconformation(customeremail,totalamt);
+            
+             },
+            error:function(){
+                 alert("Order Failed")
+            }
+             });
+            }
+
+               function  orderconformation(customeremail,totalamt){
+                  
+                if (confirm("Your Order is Placed successFully You want to visit your Order ?")) {
+                    
+                 // localStorage.setItem('totalAmount',totalamt);
+               // localStorage.setItem('customermail',customeremail);
+                  window.location.href='customer.html';
+               
+                }
+            }
+
+//   $("#cust-id").on("input",fuction(){
+//       const customersug=$(this).val().toLowerCase();
+//       const join=Object.keys()
+
+//   });
+        });
+
+
+       
+    </script>
+
+</body>
+
+</html>
