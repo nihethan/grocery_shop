@@ -47,3 +47,23 @@ $("#suggestion").on("click", ".email-item", function () {
 .email-item:hover {
     background-color: #f0f0f0;
 }
+<style>
+.suggestions-box {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    position: absolute;
+    z-index: 100;
+    max-height: 150px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.suggestions-box div {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.suggestions-box div:hover {
+    background-color: #f0f0f0;
+}
+</style>
