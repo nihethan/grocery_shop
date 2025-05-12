@@ -67,3 +67,7 @@ $("#suggestion").on("click", ".email-item", function () {
     background-color: #f0f0f0;
 }
 </style>
+<div style="position: relative;">
+    <input type="text" placeholder="Email Id (In lowercase)" id="cust-id" required autocomplete="off">
+    <div id="suggestion" class="suggestions-box"></div>
+</div>
