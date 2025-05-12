@@ -1,0 +1,42 @@
+$("#cust-id").on("input", function () {
+    const query = $(this).val().toLowerCase();
+    if (query.length >= 2) {
+        $.ajax({
+            url: "http://localhost:8080/api/suggestemails",
+            type: "GET",
+            data: { query: query },
+            success: function (emails) {
+                let suggestionHTML = "";
+                emails.forEach(email => {
+                    suggestionHTML += `<div class="suggestion-item">${email}</div>`;
+                });
+                $("#suggestion").html(suggestionHTML).show();
+            },
+            error: function () {
+                $("#suggestion").hide();
+            }
+        });
+    } else {
+        $("#suggestion").hide();
+    }
+});
+
+$("#suggestion").on("click", ".suggestion-item", function () {
+    const selectedEmail = $(this).text();
+    $("#cust-id").val(selectedEmail);
+    $("#suggestion").hide();
+});
+.suggestions-box {
+    border: 1px solid #ccc;
+    background-color: white;
+    position: absolute;
+    z-index: 100;
+    width: 250px;
+}
+.suggestions-box div {
+    padding: 5px;
+    cursor: pointer;
+}
+.suggestions-box div:hover {
+    background-color: #eee;
+}
