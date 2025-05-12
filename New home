@@ -40,3 +40,15 @@ $("#suggestion").on("click", ".suggestion-item", function () {
 .suggestions-box div:hover {
     background-color: #eee;
 }
+List<Customer> findTop5ByCustomerEmailContainingIgnoreCase(String email);
+ @GetMapping("/api/suggestemails")
+public ResponseEntity<List<String>> suggestCustomerEmails(@RequestParam String query) {
+    List<String> emails = customerRepository
+        .findByCustomerEmailContainingIgnoreCase(query)
+        .stream()
+        .map(Customer::getCustomerEmail)
+        .collect(Collectors.toList());
+
+    return ResponseEntity.ok(emails);
+}
+List<Customer> findByCustomerEmailContainingIgnoreCase(String email);
