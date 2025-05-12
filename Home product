@@ -1,0 +1,58 @@
+let productNames = [];
+
+// Load product names once when page loads
+$.ajax({
+    url: "http://localhost:8080/api/allproducts", // You should already have this
+    type: "GET",
+    success: function (products) {
+        productNames = products.map(p => p.productName.toLowerCase());
+    },
+    error: function () {
+        alert("Failed to load product names.");
+    }
+});
+
+// Suggest product names as you type
+$("#productnme").on("input", function () {
+    const input = $(this).val().toLowerCase();
+    if (input.length >= 1) {
+        const matches = productNames.filter(p => p.includes(input));
+        let html = "";
+        matches.forEach(p => {
+            html += `<div class="product-item">${p}</div>`;
+        });
+        $("#product-suggestion").html(html).show();
+    } else {
+        $("#product-suggestion").hide();
+    }
+});
+
+// Fill the input when clicking on a suggestion
+$("#product-suggestion").on("click", ".product-item", function () {
+    $("#productnme").val($(this).text());
+    $("#product-suggestion").hide();
+});
+<style>
+.suggestions-box {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    position: absolute;
+    z-index: 100;
+    max-height: 150px;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.suggestions-box div {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.suggestions-box div:hover {
+    background-color: #f0f0f0;
+}
+</style>
+<div style="position: relative;">
+    <input type="text" placeholder="Product Name" id="productnme" required autocomplete="off">
+    <div id="product-suggestion" class="suggestions-box"></div>
+</div>
